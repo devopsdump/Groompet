@@ -22,7 +22,6 @@ pipeline {
         stage("Build") {
             steps {
                 sh "mvn clean package"
-                sh "mv target/petclinic-1.0.war target/petclinic.war"
             }
         }
         stage("Deploy to Dev") {
