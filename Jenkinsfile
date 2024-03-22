@@ -1,57 +1,47 @@
 pipeline {
-    agent any 
-    
-    tools{
-        jdk 'jdk11'
-        maven 'maven3'
-    }
-     parameters {
+    agent any
+    parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'fe/dev', description: 'Specify the branch name to deploy')
     }
-    stages{
-        
-        stage("Git Checkout"){
-            steps{
-                  def branchName = params.BRANCH_NAME
-                git branches: [[name: branchName]], changelog: false, poll: false, url: 'https://github.com/jaiswaladi246/Petclinic.git'
+    stages {
+        stage("GIT checkout") {
+            steps {
+                script {
+                    // Checkout the specified branch
+                    def branchName = params.BRANCH_NAME
+                    checkout([$class: 'GitSCM', branches: [[name: branchName]], userRemoteConfigs: [[url: 'https://github.com/RAJANI9/boxfuse-sample-java-war-hello.git']]])
+                }
+            }
+         }
+        stage("Testing") {
+            steps {
+                echo "Test Runs"
+            
             }
         }
-        
-        stage("Compile"){
-            steps{
-                sh "mvn clean compile"
+        stage("Build") {
+            steps {
+                sh "mvn clean package"
+                sh "mv target/hello-1.0.war target/boxfuse-sample-java-war-hello.war"
             }
         }
-        
-         stage("Test Cases"){
-            steps{
-                sh "mvn test"
-            }
-        }
-        
-        
-         stage("Build"){
-            steps{
-                sh " mvn clean install"
-            }
-        }
-         stage("Deploy to Dev") {
+        stage("Deploy to Dev") {
             when {
                 expression { params.BRANCH_NAME == 'fe/dev' }
             }
             steps {
-                sh "cp  /var/lib/jenkins/workspace/CI-CD/target/petclinic.war /opt/apache-tomcat-9.0.65/webapps/"
+                deployToTomcat('43.205.238.180', 'tomcat', 'tomcat', 'http://43.205.238.180:8080/manager/text', '/boxfuse-sample-java-war-hello', 'Dev')
             }
         }
         stage("Deploy to QA") {
             when {
-                expression { params.BRANCH_NAME == 'fe/QA' }
+                expression { params.BRANCH_NAME == 'fe/qa' }
             }
             steps {
-                sh "cp  /var/lib/jenkins/workspace/CI-CD/target/petclinic.war /opt/apache-tomcat-9.0.65/webapps/"
+                deployToTomcat('13.201.47.166', 'tomcat', 'tomcat', 'http://13.201.47.166:8080/manager/text', '/boxfuse-sample-java-war-hello', 'QA')
             }
         }
-         stage("Deploy to Prod") {
+        stage("Deploy to Prod") {
             when {
                 expression { params.BRANCH_NAME == 'master' }
             }
@@ -59,10 +49,21 @@ pipeline {
                 input(message: "Do you want to proceed to PROD?", ok: "Proceed") // Approval step
 
                 // Deploy to PROD server after approval
-               sh "cp  /var/lib/jenkins/workspace/CI-CD/target/petclinic.war /opt/apache-tomcat-9.0.65/webapps/"
+                deployToTomcat('65.2.187.108', 'tomcat', 'tomcat', 'http://65.2.187.108:8080/manager/text', '/boxfuse-sample-java-war-hello', 'Prod')
                 
                 // Send Slack notification
-                slackSend(channel: '8pm-devops-batch', message: "Deployment to PROD has been approved by manager.")
+                slackSend(channel: '7-30am-cloud-devops-batch', message: "Deployment to PROD has been approved by manager.")
             }
         }
+    }
+}
+
+def deployToTomcat(tomcatIP, username, password, tomcatURL, contextPath, environment) {
+    def warFileName = 'target/boxfuse-sample-java-war-hello.war'
+
+    // Deploy the WAR file using curl
+    sh """
+        curl -v -u ${username}:${password} --upload-file ${warFileName} ${tomcatURL}/deploy?path=${contextPath}&update=true
+    """
+    echo "Deployment to ${environment} server completed."
 }
