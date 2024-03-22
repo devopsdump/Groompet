@@ -30,7 +30,7 @@ pipeline {
                 expression { params.BRANCH_NAME == 'fe/dev' }
             }
             steps {
-                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager', '/petclinic.war, 'Dev')
+                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager', '/petclinic.war', 'Dev')
             }
         }
         stage("Deploy to QA") {
@@ -59,7 +59,7 @@ pipeline {
 }
 
 def deployToTomcat(tomcatIP, username, password, tomcatURL, contextPath, environment) {
-    def warFileName = 'target/Groompet.war'
+    def warFileName = 'target/petclinic.war'
 
     // Deploy the WAR file using curl
     sh """
