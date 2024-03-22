@@ -30,7 +30,7 @@ pipeline {
                 expression { params.BRANCH_NAME == 'fe/dev' }
             }
             steps {
-                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager/text', '/petclinic.war, 'Dev')
+                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager', '/petclinic.war, 'Dev')
             }
         }
         stage("Deploy to QA") {
@@ -38,7 +38,7 @@ pipeline {
                 expression { params.BRANCH_NAME == 'fe/qa' }
             }
             steps {
-                deployToTomcat('3.90.109.218', 'tomcat', 'tomcat', 'http://3.90.109.218:8080/manager/text', '/petclinic.war', 'QA')
+                deployToTomcat('3.90.109.218', 'tomcat', 'tomcat', 'http://3.90.109.218:8080/manager', '/petclinic.war', 'QA')
             }
         }
         stage("Deploy to Prod") {
@@ -49,7 +49,7 @@ pipeline {
                 input(message: "Do you want to proceed to PROD?", ok: "Proceed") // Approval step
 
                 // Deploy to PROD server after approval
-                deployToTomcat('54.90.253.25', 'tomcat', 'tomcat', 'http://54.90.253.25:8080/manager/text', '/petclinic.war', 'Prod')
+                deployToTomcat('54.90.253.25', 'tomcat', 'tomcat', 'http://54.90.253.25:8080/manager', '/petclinic.war', 'Prod')
                 
                 // Send Slack notification
                 slackSend(channel: '8pm-devops-batch', message: "Deployment to PROD has been approved by manager.")
