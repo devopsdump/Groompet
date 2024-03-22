@@ -30,7 +30,7 @@ pipeline {
                 expression { params.BRANCH_NAME == 'fe/dev' }
             }
             steps {
-                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager/text', '/Groompet.war, 'Dev')
+                deployToTomcat('34.233.120.114', 'tomcat', 'tomcat', 'http://34.233.120.114:8080/manager', '/Groompet.war, 'Dev')
             }
         }
         stage("Deploy to QA") {
